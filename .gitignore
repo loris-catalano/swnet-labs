@@ -1,0 +1,18 @@
+# Dump files and packet captures
+*.dump
+*.pcap
+*.out
+
+# Compiled object files
+build/
+*.o
+
+# macOS and editor files
+.DS_Store
+
+# Debug symbol bundles (macOS)
+*.dSYM/
+
+# Coverage, build directories
+/build/
+coverage/
