@@ -3,6 +3,7 @@
 #include <net/ethernet.h>
 #include <arpa/inet.h>
 #include <pcap.h>
+#include <string.h>
 
 /* Standard C include file for I/O functions */
 /* Include file for time manipulation functions */
@@ -89,8 +90,31 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
             break;
         }
 
-        short int src_port = ip_header[20]; //<< 8 | ip_header[21];
-        short int dst_port = ip_header[22]; //<< 8 | ip_header[23];
+        unsigned short int src_port = ip_header[20] << 8 | ip_header[21];
+        unsigned short int dst_port = ip_header[22] << 8 | ip_header[23];
+
+        if (dst_port == 80) {
+            const u_char tcp_hdr_size = ip_header[20 + 12] >> 4;
+            const u_char *payload = ip_header + 20 + (tcp_hdr_size * 4);
+
+            char method[4];
+            for (size_t i = 0; i < 4; ++i) {
+                method[i] = payload[i];
+            }
+            if (strncmp(method, "GET ", 4) == 0) {
+                printf("GET request\n");
+            }
+            else if (strncmp(method, "POST", 4) == 0) {
+                printf("POST request\n");
+            }
+
+            char *host = strstr((char*) payload, "Host:");
+            if (host != NULL) {
+                host += 5;
+                while (*host == ' ') host++;
+                printf("Host: %s\n", strtok(host, "\r\n"));
+            }
+        }
 
         printf("%s.%.6ld %02x:%02x:%02x:%02x:%02x:%02x->%02x:%02x:%02x:%02x:%02x:%02x %d.%d.%d.%d->%d.%d.%d.%d %s %d->%d\n", 
                timestr, 
@@ -103,7 +127,6 @@ void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_cha
                src_port,
                dst_port
                );
-
     }
 	else
 		printf("Non IP packet\n");
