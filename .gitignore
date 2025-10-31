@@ -16,3 +16,5 @@ build/
 # Coverage, build directories
 /build/
 coverage/
+
+**/target
